@@ -1,0 +1,40 @@
+
+name: SOVRAX signal scan
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Unpack SOVRAX project
+        run: unzip -q SOVRAX_V1_GitHub_Free_Setup.zip
+
+      - name: Install dependencies
+        run: |
+          cd sovrax_v1
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run one SOVRAX scan
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          cd sovrax_v1
+          python main.py --once
